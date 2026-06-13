@@ -38,4 +38,9 @@ return [
         'token_expiration_minutes' => (int) env('SANCTUM_TOKEN_EXPIRATION', 43200),
     ],
 
+    'tax' => [
+        // Fractional VAT rate applied to the order subtotal (e.g. 0.0 = none).
+        'rate' => (float) env('RANGA_TAX_RATE', 0),
+    ],
+
 ];

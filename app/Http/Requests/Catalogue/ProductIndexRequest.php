@@ -30,7 +30,10 @@ class ProductIndexRequest extends FormRequest
             'category' => ['sometimes', 'string', 'exists:categories,id'],
             'brand' => ['sometimes', 'string', 'exists:brands,id'],
             'min_price' => ['sometimes', 'numeric', 'min:0'],
-            'max_price' => ['sometimes', 'numeric', 'min:0', 'gte:min_price'],
+            'max_price' => array_merge(
+                ['sometimes', 'numeric', 'min:0'],
+                $this->filled('min_price') ? ['gte:min_price'] : [],
+            ),
             'rating' => ['sometimes', 'integer', 'between:1,5'],
             'featured' => ['sometimes', 'boolean'],
             'attribute_values' => ['sometimes', 'array'],

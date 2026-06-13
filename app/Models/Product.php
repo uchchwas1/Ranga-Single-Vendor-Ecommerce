@@ -255,7 +255,7 @@ class Product extends Model
             'meta_keywords' => $this->meta_keywords,
             'category_id' => $this->category_id,
             'brand_id' => $this->brand_id,
-            'status' => $this->status->value,
+            'status' => $this->status?->value,
             'is_featured' => (int) $this->is_featured,
             'sort_order' => $this->sort_order,
         ];
