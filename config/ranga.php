@@ -43,4 +43,9 @@ return [
         'rate' => (float) env('RANGA_TAX_RATE', 0),
     ],
 
+    'invoices' => [
+        // Filesystem disk used to store generated invoice PDFs.
+        'disk' => env('RANGA_INVOICE_DISK', 'local'),
+    ],
+
 ];

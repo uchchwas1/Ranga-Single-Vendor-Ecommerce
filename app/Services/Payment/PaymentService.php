@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
+use App\Events\Commerce\OrderPaid;
 use App\Models\Payment;
 use App\Services\Payment\Contracts\PaymentGatewayContract;
 use App\Services\Payment\Data\PaymentInitiation;
@@ -114,6 +115,8 @@ class PaymentService
                 'payment_status' => PaymentStatus::Paid,
                 'status' => OrderStatus::Confirmed,
             ])->save();
+
+            OrderPaid::dispatch($order);
         } elseif ($verification->status === PaymentStatus::Failed) {
             $order->forceFill(['payment_status' => PaymentStatus::Failed])->save();
         }

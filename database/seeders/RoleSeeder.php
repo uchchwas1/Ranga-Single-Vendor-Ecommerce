@@ -28,6 +28,8 @@ class RoleSeeder extends Seeder
             'users.manage',
             'products.view',
             'products.manage',
+            'orders.view',
+            'orders.manage',
         ];
 
         foreach ($permissions as $permission) {
@@ -39,7 +41,11 @@ class RoleSeeder extends Seeder
         $customer = Role::findOrCreate('customer', 'web');
 
         $superAdmin->givePermissionTo(Permission::all());
-        $admin->givePermissionTo(['settings.view', 'settings.manage', 'users.view', 'products.view', 'products.manage']);
+        $admin->givePermissionTo([
+            'settings.view', 'settings.manage', 'users.view',
+            'products.view', 'products.manage',
+            'orders.view', 'orders.manage',
+        ]);
         $customer->syncPermissions([]);
     }
 }

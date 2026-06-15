@@ -7,7 +7,9 @@ namespace App\Http\Resources\Commerce;
 use App\Models\Order;
 use App\Models\OrderAddress;
 use App\Models\OrderItem;
+use App\Models\OrderStatusHistory;
 use App\Models\Payment;
+use App\Models\Shipment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -61,6 +63,25 @@ class OrderResource extends JsonResource
                 'status' => $payment->status->value,
                 'amount' => $payment->amount,
             ])->all()),
+            'timeline' => $this->whenLoaded('statusHistories', fn () => $this->statusHistories->map(static fn (OrderStatusHistory $entry): array => [
+                'status' => $entry->status->value,
+                'comment' => $entry->comment,
+                'at' => $entry->created_at?->toIso8601String(),
+            ])->all()),
+            'shipments' => $this->whenLoaded('shipments', fn () => $this->shipments->map(static fn (Shipment $shipment): array => [
+                'status' => $shipment->status->value,
+                'carrier' => $shipment->carrier,
+                'tracking_number' => $shipment->tracking_number,
+                'tracking_url' => $shipment->trackingUrl(),
+                'shipped_at' => $shipment->shipped_at?->toIso8601String(),
+                'estimated_delivery' => $shipment->estimated_delivery?->toDateString(),
+                'delivered_at' => $shipment->delivered_at?->toIso8601String(),
+            ])->all()),
+            'invoice' => $this->whenLoaded('invoice', fn () => $this->invoice !== null ? [
+                'invoice_number' => $this->invoice->invoice_number,
+                'issued_at' => $this->invoice->issued_at?->toIso8601String(),
+                'available' => $this->invoice->pdf_path !== null,
+            ] : null),
         ];
     }
 }

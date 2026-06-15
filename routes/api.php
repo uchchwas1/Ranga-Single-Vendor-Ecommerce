@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
+use App\Http\Controllers\Api\V1\Admin\AdminReturnController;
 use App\Http\Controllers\Api\V1\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
@@ -124,9 +126,13 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('/profile/wishlist/{product}', [WishlistController::class, 'store'])->name('profile.wishlist.store');
         Route::delete('/profile/wishlist/{product}', [WishlistController::class, 'destroy'])->name('profile.wishlist.destroy');
 
-        // Order history + detail
+        // Order history, detail/timeline, cancel, return, tracking, invoice
         Route::get('/profile/orders', [OrderController::class, 'index'])->name('profile.orders.index');
         Route::get('/orders/{order_number}', [OrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{order_number}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::post('/orders/{order_number}/return', [OrderController::class, 'submitReturn'])->name('orders.return');
+        Route::get('/orders/{order_number}/tracking', [OrderController::class, 'tracking'])->name('orders.tracking');
+        Route::get('/orders/{order_number}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
     });
 
     Route::prefix('admin')->name('admin.')
@@ -134,5 +140,14 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         ->group(function (): void {
             Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings.index');
             Route::put('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
+
+            // Order management
+            Route::put('/orders/{order_number}/status', [AdminOrderController::class, 'changeStatus'])->name('orders.status');
+            Route::post('/orders/{order_number}/shipments', [AdminOrderController::class, 'ship'])->name('orders.ship');
+
+            // Returns & refunds
+            Route::get('/returns', [AdminReturnController::class, 'index'])->name('returns.index');
+            Route::post('/returns/{return}/approve', [AdminReturnController::class, 'approve'])->name('returns.approve');
+            Route::post('/returns/{return}/reject', [AdminReturnController::class, 'reject'])->name('returns.reject');
         });
 });

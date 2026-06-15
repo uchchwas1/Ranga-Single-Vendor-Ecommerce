@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Services\Invoice\Contracts\InvoiceRenderer;
+use App\Services\Invoice\DompdfInvoiceRenderer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
@@ -21,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(InvoiceRenderer::class, DompdfInvoiceRenderer::class);
     }
 
     /**

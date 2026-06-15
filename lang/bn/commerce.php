@@ -69,4 +69,60 @@ return [
         'init_failed' => 'পেমেন্ট শুরু করা যায়নি। আবার চেষ্টা করুন।',
     ],
 
+    'shipment_status' => [
+        'pending' => 'অপেক্ষমাণ',
+        'processing' => 'প্রক্রিয়াধীন',
+        'shipped' => 'পাঠানো হয়েছে',
+        'in_transit' => 'পরিবহনে',
+        'delivered' => 'ডেলিভারি সম্পন্ন',
+        'returned' => 'ফেরত',
+    ],
+
+    'return_status' => [
+        'pending' => 'অপেক্ষমাণ',
+        'approved' => 'অনুমোদিত',
+        'rejected' => 'প্রত্যাখ্যাত',
+        'completed' => 'সম্পন্ন',
+    ],
+
+    'refund_status' => [
+        'pending' => 'অপেক্ষমাণ',
+        'processing' => 'প্রক্রিয়াধীন',
+        'completed' => 'সম্পন্ন',
+        'failed' => 'ব্যর্থ',
+    ],
+
+    'refund_method' => [
+        'original_payment' => 'মূল পেমেন্ট মাধ্যম',
+        'store_credit' => 'স্টোর ক্রেডিট',
+        'manual' => 'ম্যানুয়াল',
+    ],
+
+    'order' => [
+        'not_cancellable' => 'এই অর্ডারটি আর বাতিল করা যাবে না।',
+    ],
+
+    'shipment' => [
+        'dispatched' => 'আপনার অর্ডার পাঠানো হয়েছে।',
+        'delivered' => 'আপনার অর্ডার ডেলিভারি সম্পন্ন হয়েছে।',
+    ],
+
+    'return' => [
+        'not_returnable' => 'এই অর্ডারটি ফেরতের জন্য যোগ্য নয়।',
+        'not_pending' => 'এই ফেরত অনুরোধটি ইতিমধ্যে প্রক্রিয়া করা হয়েছে।',
+    ],
+
+    'invoice' => [
+        'title' => 'ইনভয়েস',
+        'order' => 'অর্ডার',
+        'item' => 'পণ্য',
+        'qty' => 'পরিমাণ',
+        'unit_price' => 'একক মূল্য',
+        'subtotal' => 'সাবটোটাল',
+        'shipping' => 'শিপিং',
+        'tax' => 'কর',
+        'total' => 'মোট',
+        'unavailable' => 'ইনভয়েস এখনও উপলব্ধ নয়।',
+    ],
+
 ];

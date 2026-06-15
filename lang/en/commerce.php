@@ -69,4 +69,60 @@ return [
         'init_failed' => 'We could not start the payment. Please try again.',
     ],
 
+    'shipment_status' => [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'shipped' => 'Shipped',
+        'in_transit' => 'In transit',
+        'delivered' => 'Delivered',
+        'returned' => 'Returned',
+    ],
+
+    'return_status' => [
+        'pending' => 'Pending',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+        'completed' => 'Completed',
+    ],
+
+    'refund_status' => [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'completed' => 'Completed',
+        'failed' => 'Failed',
+    ],
+
+    'refund_method' => [
+        'original_payment' => 'Original payment method',
+        'store_credit' => 'Store credit',
+        'manual' => 'Manual',
+    ],
+
+    'order' => [
+        'not_cancellable' => 'This order can no longer be cancelled.',
+    ],
+
+    'shipment' => [
+        'dispatched' => 'Your order has been shipped.',
+        'delivered' => 'Your order has been delivered.',
+    ],
+
+    'return' => [
+        'not_returnable' => 'This order is not eligible for return.',
+        'not_pending' => 'This return request has already been processed.',
+    ],
+
+    'invoice' => [
+        'title' => 'Invoice',
+        'order' => 'Order',
+        'item' => 'Item',
+        'qty' => 'Qty',
+        'unit_price' => 'Unit price',
+        'subtotal' => 'Subtotal',
+        'shipping' => 'Shipping',
+        'tax' => 'Tax',
+        'total' => 'Total',
+        'unavailable' => 'The invoice is not available yet.',
+    ],
+
 ];
