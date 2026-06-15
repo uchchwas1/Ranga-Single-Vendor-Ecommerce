@@ -2,12 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\AdminBannerController;
+use App\Http\Controllers\Api\V1\Admin\AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\AdminBundleController;
 use App\Http\Controllers\Api\V1\Admin\AdminCouponController;
+use App\Http\Controllers\Api\V1\Admin\AdminCustomerController;
 use App\Http\Controllers\Api\V1\Admin\AdminFlashSaleController;
 use App\Http\Controllers\Api\V1\Admin\AdminGiftCardController;
+use App\Http\Controllers\Api\V1\Admin\AdminMenuController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
+use App\Http\Controllers\Api\V1\Admin\AdminPageController;
+use App\Http\Controllers\Api\V1\Admin\AdminPopupController;
+use App\Http\Controllers\Api\V1\Admin\AdminReportController;
 use App\Http\Controllers\Api\V1\Admin\AdminReturnController;
+use App\Http\Controllers\Api\V1\Admin\AdminSeoController;
 use App\Http\Controllers\Api\V1\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
@@ -26,6 +34,8 @@ use App\Http\Controllers\Api\V1\Commerce\CheckoutController;
 use App\Http\Controllers\Api\V1\Commerce\CompareController;
 use App\Http\Controllers\Api\V1\Commerce\OrderController;
 use App\Http\Controllers\Api\V1\Commerce\WishlistController;
+use App\Http\Controllers\Api\V1\Cms\BlogController;
+use App\Http\Controllers\Api\V1\Cms\ContentController;
 use App\Http\Controllers\Api\V1\Marketing\AffiliateClickController;
 use App\Http\Controllers\Api\V1\Marketing\BundleController;
 use App\Http\Controllers\Api\V1\Marketing\FlashSaleController;
@@ -93,6 +103,18 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('/bundles', [BundleController::class, 'index'])->name('bundles.index');
         Route::get('/bundles/{slug}', [BundleController::class, 'show'])->name('bundles.show');
         Route::get('/aff/{code}', [AffiliateClickController::class, 'track'])->name('affiliate.track');
+    });
+
+    // Public CMS: pages, banners, menus, popups, blog.
+    Route::middleware('throttle:api')->group(function (): void {
+        Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+        Route::get('/blog/categories', [BlogController::class, 'categories'])->name('blog.categories');
+        Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+
+        Route::get('/banners', [ContentController::class, 'banners'])->name('banners.index');
+        Route::get('/popups', [ContentController::class, 'popups'])->name('popups.index');
+        Route::get('/menus/{location}', [ContentController::class, 'menu'])->name('menus.show');
+        Route::get('/pages/{slug}', [ContentController::class, 'page'])->name('pages.show');
     });
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
@@ -179,5 +201,42 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('/gift-cards', [AdminGiftCardController::class, 'store'])->name('gift-cards.store');
             Route::post('/flash-sales', [AdminFlashSaleController::class, 'store'])->name('flash-sales.store');
             Route::post('/bundles', [AdminBundleController::class, 'store'])->name('bundles.store');
+
+            // CMS — pages
+            Route::get('/pages', [AdminPageController::class, 'index'])->name('pages.index');
+            Route::post('/pages', [AdminPageController::class, 'store'])->name('pages.store');
+            Route::delete('/pages/{page}', [AdminPageController::class, 'destroy'])->name('pages.destroy');
+
+            // CMS — banners
+            Route::get('/banners', [AdminBannerController::class, 'index'])->name('banners.index');
+            Route::post('/banners', [AdminBannerController::class, 'store'])->name('banners.store');
+            Route::delete('/banners/{banner}', [AdminBannerController::class, 'destroy'])->name('banners.destroy');
+
+            // CMS — blog
+            Route::get('/blog/posts', [AdminBlogController::class, 'index'])->name('blog.posts.index');
+            Route::post('/blog/categories', [AdminBlogController::class, 'storeCategory'])->name('blog.categories.store');
+            Route::post('/blog/posts', [AdminBlogController::class, 'storePost'])->name('blog.posts.store');
+            Route::delete('/blog/posts/{post}', [AdminBlogController::class, 'destroyPost'])->name('blog.posts.destroy');
+
+            // CMS — menus & popups
+            Route::post('/menus', [AdminMenuController::class, 'store'])->name('menus.store');
+            Route::get('/menus/{menu}', [AdminMenuController::class, 'show'])->name('menus.show');
+            Route::get('/popups', [AdminPopupController::class, 'index'])->name('popups.index');
+            Route::post('/popups', [AdminPopupController::class, 'store'])->name('popups.store');
+            Route::delete('/popups/{popup}', [AdminPopupController::class, 'destroy'])->name('popups.destroy');
+
+            // SEO
+            Route::put('/seo', [AdminSeoController::class, 'upsert'])->name('seo.upsert');
+
+            // Reports
+            Route::get('/reports/dashboard', [AdminReportController::class, 'dashboard'])->name('reports.dashboard');
+            Route::get('/reports/sales', [AdminReportController::class, 'sales'])->name('reports.sales');
+            Route::get('/reports/customers', [AdminReportController::class, 'customers'])->name('reports.customers');
+            Route::get('/reports/inventory', [AdminReportController::class, 'inventory'])->name('reports.inventory');
+
+            // Customers
+            Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+            Route::get('/customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
+            Route::post('/customers/{user}/loyalty', [AdminCustomerController::class, 'adjustLoyalty'])->name('customers.loyalty');
         });
 });

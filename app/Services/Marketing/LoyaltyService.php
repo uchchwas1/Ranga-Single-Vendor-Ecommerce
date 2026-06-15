@@ -61,6 +61,14 @@ class LoyaltyService
     }
 
     /**
+     * Apply a manual admin adjustment (positive or negative) to a balance.
+     */
+    public function adjust(User $user, int $points, ?string $note = null): LoyaltyTransaction
+    {
+        return $this->record($user, LoyaltyTransactionType::Adjust, $points, null, $note);
+    }
+
+    /**
      * The loyalty tier the user currently qualifies for, if any.
      */
     public function currentTier(User $user): ?LoyaltyTier
