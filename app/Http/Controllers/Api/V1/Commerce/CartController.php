@@ -6,10 +6,14 @@ namespace App\Http\Controllers\Api\V1\Commerce;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Commerce\AddToCartRequest;
+use App\Http\Requests\Commerce\ApplyCouponRequest;
+use App\Http\Requests\Commerce\ApplyGiftCardRequest;
 use App\Http\Requests\Commerce\UpdateCartItemRequest;
 use App\Http\Resources\Commerce\CartResource;
 use App\Models\Cart;
 use App\Services\Commerce\CartService;
+use App\Services\Marketing\CouponService;
+use App\Services\Marketing\GiftCardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -24,7 +28,51 @@ class CartController extends Controller
      */
     public function __construct(
         private readonly CartService $carts,
+        private readonly CouponService $coupons,
+        private readonly GiftCardService $giftCards,
     ) {
+    }
+
+    /**
+     * POST /cart/coupon — validate and attach a coupon to the cart.
+     */
+    public function applyCoupon(ApplyCouponRequest $request): CartResource
+    {
+        $cart = $this->resolve($request);
+
+        $coupon = $this->coupons->validate(
+            (string) $request->validated('code'),
+            $cart->subtotal(),
+            $request->user(),
+        );
+
+        $cart->forceFill(['coupon_id' => $coupon->id])->save();
+
+        return new CartResource($this->withItems($cart));
+    }
+
+    /**
+     * DELETE /cart/coupon — detach the applied coupon.
+     */
+    public function removeCoupon(Request $request): CartResource
+    {
+        $cart = $this->resolve($request);
+        $cart->forceFill(['coupon_id' => null])->save();
+
+        return new CartResource($this->withItems($cart));
+    }
+
+    /**
+     * POST /cart/gift-card — validate and attach a gift card to the cart.
+     */
+    public function applyGiftCard(ApplyGiftCardRequest $request): CartResource
+    {
+        $cart = $this->resolve($request);
+
+        $card = $this->giftCards->validate((string) $request->validated('code'));
+        $cart->forceFill(['gift_card_id' => $card->id])->save();
+
+        return new CartResource($this->withItems($cart));
     }
 
     /**
@@ -134,6 +182,6 @@ class CartController extends Controller
      */
     private function withItems(Cart $cart): Cart
     {
-        return $cart->load(['items.product.primaryImage', 'items.variant']);
+        return $cart->load(['items.product.primaryImage', 'items.variant', 'coupon', 'giftCard']);
     }
 }

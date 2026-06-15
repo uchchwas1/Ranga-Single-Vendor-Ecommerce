@@ -30,6 +30,8 @@ class RoleSeeder extends Seeder
             'products.manage',
             'orders.view',
             'orders.manage',
+            'marketing.view',
+            'marketing.manage',
         ];
 
         foreach ($permissions as $permission) {
@@ -45,6 +47,7 @@ class RoleSeeder extends Seeder
             'settings.view', 'settings.manage', 'users.view',
             'products.view', 'products.manage',
             'orders.view', 'orders.manage',
+            'marketing.view', 'marketing.manage',
         ]);
         $customer->syncPermissions([]);
     }

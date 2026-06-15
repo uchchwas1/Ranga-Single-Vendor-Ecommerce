@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A shopping cart, owned by a user or an anonymous session.
@@ -58,6 +59,36 @@ class Cart extends Model
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    /**
+     * The abandonment record for this cart, if flagged.
+     *
+     * @return HasOne<CartAbandonment, $this>
+     */
+    public function abandonment(): HasOne
+    {
+        return $this->hasOne(CartAbandonment::class);
+    }
+
+    /**
+     * The coupon applied to the cart, if any.
+     *
+     * @return BelongsTo<Coupon, $this>
+     */
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    /**
+     * The gift card applied to the cart, if any.
+     *
+     * @return BelongsTo<GiftCard, $this>
+     */
+    public function giftCard(): BelongsTo
+    {
+        return $this->belongsTo(GiftCard::class, 'gift_card_id');
     }
 
     /**

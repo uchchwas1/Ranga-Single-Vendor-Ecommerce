@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\AdminBundleController;
+use App\Http\Controllers\Api\V1\Admin\AdminCouponController;
+use App\Http\Controllers\Api\V1\Admin\AdminFlashSaleController;
+use App\Http\Controllers\Api\V1\Admin\AdminGiftCardController;
 use App\Http\Controllers\Api\V1\Admin\AdminOrderController;
 use App\Http\Controllers\Api\V1\Admin\AdminReturnController;
 use App\Http\Controllers\Api\V1\Admin\SettingsController as AdminSettingsController;
@@ -22,6 +26,10 @@ use App\Http\Controllers\Api\V1\Commerce\CheckoutController;
 use App\Http\Controllers\Api\V1\Commerce\CompareController;
 use App\Http\Controllers\Api\V1\Commerce\OrderController;
 use App\Http\Controllers\Api\V1\Commerce\WishlistController;
+use App\Http\Controllers\Api\V1\Marketing\AffiliateClickController;
+use App\Http\Controllers\Api\V1\Marketing\BundleController;
+use App\Http\Controllers\Api\V1\Marketing\FlashSaleController;
+use App\Http\Controllers\Api\V1\Marketing\LoyaltyController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -69,10 +77,22 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('/cart/items/{item}/save-for-later', [CartController::class, 'saveForLater'])->name('cart.items.save');
         Route::post('/cart/saved/{saved}/move', [CartController::class, 'moveSaved'])->name('cart.saved.move');
 
+        Route::post('/cart/coupon', [CartController::class, 'applyCoupon'])->name('cart.coupon.apply');
+        Route::delete('/cart/coupon', [CartController::class, 'removeCoupon'])->name('cart.coupon.remove');
+        Route::post('/cart/gift-card', [CartController::class, 'applyGiftCard'])->name('cart.gift_card.apply');
+
         Route::get('/checkout/shipping-methods', [CheckoutController::class, 'shippingMethods'])->name('checkout.shipping');
         Route::post('/checkout', [CheckoutController::class, 'place'])->name('checkout.place');
         Route::match(['get', 'post'], '/checkout/payment/{gateway}/callback', [CheckoutController::class, 'callback'])
             ->name('checkout.callback');
+    });
+
+    // Public marketing: flash sales, bundles, affiliate click tracking.
+    Route::middleware('throttle:api')->group(function (): void {
+        Route::get('/flash-sales/active', [FlashSaleController::class, 'active'])->name('flash-sales.active');
+        Route::get('/bundles', [BundleController::class, 'index'])->name('bundles.index');
+        Route::get('/bundles/{slug}', [BundleController::class, 'show'])->name('bundles.show');
+        Route::get('/aff/{code}', [AffiliateClickController::class, 'track'])->name('affiliate.track');
     });
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
@@ -126,6 +146,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('/profile/wishlist/{product}', [WishlistController::class, 'store'])->name('profile.wishlist.store');
         Route::delete('/profile/wishlist/{product}', [WishlistController::class, 'destroy'])->name('profile.wishlist.destroy');
 
+        // Loyalty points
+        Route::get('/profile/loyalty', [LoyaltyController::class, 'show'])->name('profile.loyalty');
+
         // Order history, detail/timeline, cancel, return, tracking, invoice
         Route::get('/profile/orders', [OrderController::class, 'index'])->name('profile.orders.index');
         Route::get('/orders/{order_number}', [OrderController::class, 'show'])->name('orders.show');
@@ -149,5 +172,12 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('/returns', [AdminReturnController::class, 'index'])->name('returns.index');
             Route::post('/returns/{return}/approve', [AdminReturnController::class, 'approve'])->name('returns.approve');
             Route::post('/returns/{return}/reject', [AdminReturnController::class, 'reject'])->name('returns.reject');
+
+            // Marketing
+            Route::get('/coupons', [AdminCouponController::class, 'index'])->name('coupons.index');
+            Route::post('/coupons', [AdminCouponController::class, 'store'])->name('coupons.store');
+            Route::post('/gift-cards', [AdminGiftCardController::class, 'store'])->name('gift-cards.store');
+            Route::post('/flash-sales', [AdminFlashSaleController::class, 'store'])->name('flash-sales.store');
+            Route::post('/bundles', [AdminBundleController::class, 'store'])->name('bundles.store');
         });
 });

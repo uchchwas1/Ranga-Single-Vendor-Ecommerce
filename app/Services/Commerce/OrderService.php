@@ -10,7 +10,13 @@ use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\User;
 use App\Repositories\Contracts\OrderRepositoryContract;
+use App\Services\Marketing\AffiliateService;
+use App\Services\Marketing\CouponService;
+use App\Services\Marketing\DiscountService;
+use App\Services\Marketing\GiftCardService;
+use App\Services\Marketing\LoyaltyService;
 use App\Services\Payment\PaymentService;
+use App\Support\Dto\CheckoutDiscounts;
 use App\Support\Dto\CheckoutResult;
 use App\Support\Enums\AddressType;
 use App\Support\Enums\OrderStatus;
@@ -35,13 +41,18 @@ class OrderService
         private readonly CartService $carts,
         private readonly ShippingService $shipping,
         private readonly PaymentService $payments,
+        private readonly DiscountService $discounts,
+        private readonly CouponService $coupons,
+        private readonly GiftCardService $giftCards,
+        private readonly LoyaltyService $loyalty,
+        private readonly AffiliateService $affiliates,
     ) {
     }
 
     /**
      * Place an order from the given cart.
      *
-     * @param  array{shipping: array<string, mixed>, billing?: array<string, mixed>|null, shipping_method: string, payment_gateway: string, guest_email?: string|null, notes?: string|null}  $data
+     * @param  array{shipping: array<string, mixed>, billing?: array<string, mixed>|null, shipping_method: string, payment_gateway: string, guest_email?: string|null, notes?: string|null, coupon_code?: string|null, gift_card_code?: string|null, redeem_points?: int|null, affiliate_code?: string|null}  $data
      *
      * @throws ValidationException
      */
@@ -74,9 +85,19 @@ class OrderService
         $shippingCost = $this->shipping->quote($method, $subtotal, $weight);
         $taxRate = (float) config('ranga.tax.rate', 0);
         $taxAmount = round($subtotal * $taxRate, 2);
-        $total = round($subtotal + $shippingCost + $taxAmount, 2);
 
-        $result = DB::transaction(function () use ($cart, $data, $user, $ip, $userAgent, $gateway, $subtotal, $shippingCost, $taxAmount, $taxRate, $total): CheckoutResult {
+        // Validate + compute coupon / gift-card / loyalty discounts (no mutations yet).
+        $discounts = $this->discounts->forCheckout(
+            subtotal: $subtotal,
+            shipping: $shippingCost,
+            tax: $taxAmount,
+            user: $user,
+            couponCode: $data['coupon_code'] ?? null,
+            giftCardCode: $data['gift_card_code'] ?? null,
+            redeemPoints: (int) ($data['redeem_points'] ?? 0),
+        );
+
+        $result = DB::transaction(function () use ($cart, $data, $user, $ip, $userAgent, $gateway, $subtotal, $taxAmount, $taxRate, $discounts): CheckoutResult {
             $order = $this->orders->create([
                 'order_number' => $this->generateOrderNumber(),
                 'user_id' => $user?->id,
@@ -85,11 +106,13 @@ class OrderService
                 'payment_status' => PaymentStatus::Pending,
                 'shipping_status' => ShippingStatus::Pending,
                 'subtotal' => $subtotal,
-                'discount_amount' => 0,
-                'shipping_amount' => $shippingCost,
+                'discount_amount' => $discounts->discountAmount,
+                'shipping_amount' => $discounts->shippingPayable,
                 'tax_amount' => $taxAmount,
-                'total' => $total,
+                'total' => $discounts->total,
                 'currency' => $cart->currency,
+                'coupon_id' => $discounts->coupon?->id,
+                'gift_card_id' => $discounts->giftCard?->id,
                 'notes' => $data['notes'] ?? null,
                 'ip_address' => $ip,
                 'user_agent' => $userAgent,
@@ -97,11 +120,13 @@ class OrderService
 
             $this->createItems($order, $cart, $taxRate);
             $this->createAddresses($order, $data);
+            $this->applyDiscountSideEffects($order, $user, $discounts);
+            $this->recordAffiliateConversion($order, $data['affiliate_code'] ?? null);
 
             $payment = $order->payments()->create([
                 'user_id' => $user?->id,
                 'gateway' => $gateway,
-                'amount' => $total,
+                'amount' => $discounts->total,
                 'currency' => $cart->currency,
                 'status' => PaymentStatus::Pending,
             ]);
@@ -116,6 +141,41 @@ class OrderService
         });
 
         return $result;
+    }
+
+    /**
+     * Apply the side effects of the computed discounts: record coupon
+     * usage, deduct the gift-card balance, and redeem loyalty points.
+     */
+    private function applyDiscountSideEffects(Order $order, ?User $user, CheckoutDiscounts $discounts): void
+    {
+        if ($discounts->coupon !== null) {
+            $this->coupons->recordUsage($discounts->coupon, $user, $order, $discounts->couponDiscount);
+        }
+
+        if ($discounts->giftCard !== null && $discounts->giftCardApplied > 0) {
+            $this->giftCards->redeem($discounts->giftCard, $discounts->giftCardApplied, $user);
+        }
+
+        if ($user !== null && $discounts->loyaltyPoints > 0) {
+            $this->loyalty->redeem($user, $discounts->loyaltyPoints, $order);
+        }
+    }
+
+    /**
+     * Create a pending affiliate conversion when a valid code is supplied.
+     */
+    private function recordAffiliateConversion(Order $order, ?string $affiliateCode): void
+    {
+        if ($affiliateCode === null || $affiliateCode === '') {
+            return;
+        }
+
+        $affiliate = $this->affiliates->findActiveByCode($affiliateCode);
+
+        if ($affiliate !== null) {
+            $this->affiliates->convert($affiliate, $order);
+        }
     }
 
     /**

@@ -62,10 +62,14 @@ class CheckoutController extends Controller
      */
     public function place(PlaceOrderRequest $request): JsonResponse
     {
-        $cart = $this->resolveCart($request);
+        $cart = $this->resolveCart($request)->load(['coupon', 'giftCard']);
 
-        /** @var array{shipping: array<string, mixed>, billing?: array<string, mixed>|null, shipping_method: string, payment_gateway: string, guest_email?: string|null, notes?: string|null} $data */
+        /** @var array{shipping: array<string, mixed>, billing?: array<string, mixed>|null, shipping_method: string, payment_gateway: string, guest_email?: string|null, notes?: string|null, coupon_code?: string|null, gift_card_code?: string|null, redeem_points?: int|null, affiliate_code?: string|null} $data */
         $data = $request->validated();
+
+        // Fall back to coupon/gift card already applied to the cart.
+        $data['coupon_code'] ??= $cart->coupon?->code;
+        $data['gift_card_code'] ??= $cart->giftCard?->code;
 
         $result = $this->orders->place($cart, $data, $request->user(), $request->ip(), $request->userAgent());
 

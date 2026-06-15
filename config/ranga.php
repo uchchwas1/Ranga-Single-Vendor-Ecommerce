@@ -48,4 +48,26 @@ return [
         'disk' => env('RANGA_INVOICE_DISK', 'local'),
     ],
 
+    'loyalty' => [
+        // Currency spent per 1 point earned (e.g. 100 = 1 point per ৳100).
+        'earn_divisor' => (float) env('RANGA_LOYALTY_EARN_DIVISOR', 100),
+        // Monetary value of 1 point when redeemed (e.g. 1.0 = ৳1).
+        'redeem_value' => (float) env('RANGA_LOYALTY_REDEEM_VALUE', 1),
+    ],
+
+    'referral' => [
+        'reward_type' => env('RANGA_REFERRAL_REWARD_TYPE', 'points'),
+        'reward_value' => (float) env('RANGA_REFERRAL_REWARD_VALUE', 100),
+    ],
+
+    'affiliate' => [
+        'default_commission_rate' => (float) env('RANGA_AFFILIATE_RATE', 10),
+        'default_commission_type' => env('RANGA_AFFILIATE_TYPE', 'percent'),
+    ],
+
+    'cart' => [
+        // Idle minutes before a cart is considered abandoned.
+        'abandon_after_minutes' => (int) env('RANGA_CART_ABANDON_MINUTES', 60),
+    ],
+
 ];

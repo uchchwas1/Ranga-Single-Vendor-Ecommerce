@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,
             CatalogueSeeder::class,
             CommerceSeeder::class,
+            LoyaltyTierSeeder::class,
         ]);
 
         $admin = User::query()->firstOrCreate(

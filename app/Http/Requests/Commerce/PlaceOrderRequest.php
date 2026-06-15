@@ -54,6 +54,12 @@ class PlaceOrderRequest extends FormRequest
             'payment_gateway' => ['required', 'string', Rule::in($implemented)],
             'guest_email' => ['nullable', 'email'],
             'notes' => ['nullable', 'string', 'max:1000'],
+
+            // Marketing (optional)
+            'coupon_code' => ['nullable', 'string', 'max:64'],
+            'gift_card_code' => ['nullable', 'string', 'max:64'],
+            'redeem_points' => ['nullable', 'integer', 'min:1'],
+            'affiliate_code' => ['nullable', 'string', 'max:64'],
         ];
     }
 }

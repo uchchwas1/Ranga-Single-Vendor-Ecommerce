@@ -29,6 +29,8 @@ class CartResource extends JsonResource
             'currency' => $this->currency,
             'item_count' => $this->whenLoaded('items', fn () => $this->items->sum('quantity')),
             'subtotal' => $this->whenLoaded('items', fn () => $this->subtotal()),
+            'coupon_code' => $this->whenLoaded('coupon', fn () => $this->coupon?->code),
+            'gift_card_code' => $this->whenLoaded('giftCard', fn () => $this->giftCard?->code),
             'items' => CartItemResource::collection($this->whenLoaded('items')),
         ];
     }

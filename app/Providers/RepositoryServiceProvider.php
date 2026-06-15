@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Repositories\Contracts\BrandRepositoryContract;
 use App\Repositories\Contracts\CartRepositoryContract;
 use App\Repositories\Contracts\CategoryRepositoryContract;
+use App\Repositories\Contracts\CouponRepositoryContract;
 use App\Repositories\Contracts\InventoryRepositoryContract;
 use App\Repositories\Contracts\OrderRepositoryContract;
 use App\Repositories\Contracts\ProductRepositoryContract;
@@ -15,6 +16,7 @@ use App\Repositories\Contracts\UserRepositoryContract;
 use App\Repositories\Eloquent\EloquentBrandRepository;
 use App\Repositories\Eloquent\EloquentCartRepository;
 use App\Repositories\Eloquent\EloquentCategoryRepository;
+use App\Repositories\Eloquent\EloquentCouponRepository;
 use App\Repositories\Eloquent\EloquentInventoryRepository;
 use App\Repositories\Eloquent\EloquentOrderRepository;
 use App\Repositories\Eloquent\EloquentProductRepository;
@@ -40,5 +42,6 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(InventoryRepositoryContract::class, EloquentInventoryRepository::class);
         $this->app->bind(CartRepositoryContract::class, EloquentCartRepository::class);
         $this->app->bind(OrderRepositoryContract::class, EloquentOrderRepository::class);
+        $this->app->bind(CouponRepositoryContract::class, EloquentCouponRepository::class);
     }
 }
