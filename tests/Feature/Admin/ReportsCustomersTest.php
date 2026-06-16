@@ -42,6 +42,9 @@ class ReportsCustomersTest extends TestCase
 
     public function test_reports_require_permission(): void
     {
+        // The permission exists (as in production seeding); the user simply
+        // is not granted it.
+        Permission::findOrCreate('reports.view', 'web');
         Sanctum::actingAs(User::factory()->create());
 
         $this->getJson('/api/v1/admin/reports/dashboard')->assertForbidden();

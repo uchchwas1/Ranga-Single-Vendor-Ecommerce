@@ -41,6 +41,7 @@ class CmsAdminTest extends TestCase
 
     public function test_creating_a_page_requires_permission(): void
     {
+        Permission::findOrCreate('cms.manage', 'web');
         Sanctum::actingAs(User::factory()->create());
 
         $this->postJson('/api/v1/admin/pages', ['title' => 'X', 'slug' => 'x'])
