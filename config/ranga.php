@@ -48,6 +48,29 @@ return [
         'disk' => env('RANGA_INVOICE_DISK', 'local'),
     ],
 
+    'cache' => [
+        // TTLs (seconds) for cached catalogue reads (blueprint 2.12).
+        'catalogue_ttl' => (int) env('RANGA_CACHE_CATALOGUE_TTL', 600),
+        'category_tree_ttl' => (int) env('RANGA_CACHE_CATEGORY_TTL', 3600),
+        'homepage_ttl' => (int) env('RANGA_CACHE_HOMEPAGE_TTL', 1800),
+    ],
+
+    'images' => [
+        // On-the-fly image optimisation. When imgproxy key/salt are set,
+        // URLs are signed; otherwise the CDN/base URL is used directly.
+        'driver' => env('RANGA_IMAGE_DRIVER', 'imgproxy'),
+        'imgproxy_url' => env('IMGPROXY_URL', 'https://img.ranga.test'),
+        'imgproxy_key' => env('IMGPROXY_KEY'),
+        'imgproxy_salt' => env('IMGPROXY_SALT'),
+        'source_base' => env('RANGA_IMAGE_SOURCE_BASE', env('AWS_URL', 'https://cdn.ranga.test')),
+        'format' => env('RANGA_IMAGE_FORMAT', 'webp'),
+    ],
+
+    'seo' => [
+        'organization_name' => env('RANGA_SEO_ORG', env('RANGA_BRAND_NAME', 'Ranga')),
+        'locales' => ['bn-BD', 'en-BD'],
+    ],
+
     'loyalty' => [
         // Currency spent per 1 point earned (e.g. 100 = 1 point per ৳100).
         'earn_divisor' => (float) env('RANGA_LOYALTY_EARN_DIVISOR', 100),

@@ -15,6 +15,7 @@ use App\Services\Invoice\DompdfInvoiceRenderer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -45,6 +46,16 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configurePasswordRules();
         $this->configureRateLimiting();
+        $this->configureHorizonGate();
+    }
+
+    /**
+     * Restrict the Horizon dashboard to admin roles.
+     */
+    private function configureHorizonGate(): void
+    {
+        Gate::define('viewHorizon', static fn ($user): bool => method_exists($user, 'hasRole')
+            && $user->hasRole(['admin', 'super-admin']));
     }
 
     /**

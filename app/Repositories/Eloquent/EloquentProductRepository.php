@@ -7,6 +7,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Category;
 use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryContract;
+use App\Services\Support\CacheService;
 use App\Support\Dto\ProductFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +21,13 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class EloquentProductRepository implements ProductRepositoryContract
 {
+    /**
+     * Create a new repository instance.
+     */
+    public function __construct(
+        private readonly CacheService $cache,
+    ) {
+    }
     /**
      * Paginate active products matching the given filters.
      *
@@ -84,13 +92,18 @@ class EloquentProductRepository implements ProductRepositoryContract
      */
     public function featured(int $limit = 10): Collection
     {
-        return Product::query()
-            ->active()
-            ->featured()
-            ->with(['primaryImage', 'brand'])
-            ->orderBy('sort_order')
-            ->limit($limit)
-            ->get();
+        return $this->cache->remember(
+            ['catalogue', 'products'],
+            "products:featured:{$limit}",
+            (int) config('ranga.cache.catalogue_ttl', 600),
+            static fn (): Collection => Product::query()
+                ->active()
+                ->featured()
+                ->with(['primaryImage', 'brand'])
+                ->orderBy('sort_order')
+                ->limit($limit)
+                ->get(),
+        );
     }
 
     /**

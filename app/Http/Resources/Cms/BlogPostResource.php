@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Cms;
 
 use App\Models\BlogPost;
+use App\Services\Seo\SchemaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -33,6 +34,10 @@ class BlogPostResource extends JsonResource
             'author' => $this->whenLoaded('author', fn () => $this->author?->name),
             'published_at' => $this->published_at?->toIso8601String(),
             'view_count' => $this->view_count,
+            'structured_data' => $this->when(
+                $request->routeIs('*.show'),
+                fn (): array => app(SchemaService::class)->blogPosting($this->resource),
+            ),
         ];
     }
 }

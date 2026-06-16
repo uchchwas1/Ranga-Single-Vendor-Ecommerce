@@ -7,6 +7,7 @@ namespace App\Http\Resources\Catalogue;
 use App\Models\Product;
 use App\Models\ProductTag;
 use App\Models\ProductVideo;
+use App\Services\Seo\SchemaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -61,6 +62,59 @@ class ProductDetailResource extends JsonResource
             ])->all()),
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->map(static fn (ProductTag $tag): string => $tag->tag)->all()),
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
+            'seo' => $this->seo(),
+            'structured_data' => $this->structuredData(),
+        ];
+    }
+
+    /**
+     * SEO meta: canonical URL, Open Graph and hreflang alternates.
+     *
+     * @return array<string, mixed>
+     */
+    private function seo(): array
+    {
+        $url = url('/products/'.$this->slug);
+
+        /** @var list<string> $locales */
+        $locales = (array) config('ranga.seo.locales', []);
+
+        return [
+            'canonical' => $url,
+            'og' => [
+                'title' => $this->meta_title ?? $this->name,
+                'description' => $this->meta_description ?? $this->short_description,
+                'type' => 'product',
+                'url' => $url,
+                'image' => $this->primaryImage?->image_path,
+            ],
+            'hreflang' => array_map(static fn (string $locale): array => [
+                'lang' => $locale,
+                'url' => $url,
+            ], $locales),
+        ];
+    }
+
+    /**
+     * Schema.org JSON-LD blocks for the product and its breadcrumb.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function structuredData(): array
+    {
+        $schema = app(SchemaService::class);
+
+        $crumbs = [['name' => 'Home', 'url' => url('/')]];
+
+        if ($this->category !== null) {
+            $crumbs[] = ['name' => $this->category->name, 'url' => url('/categories/'.$this->category->slug)];
+        }
+
+        $crumbs[] = ['name' => $this->name, 'url' => url('/products/'.$this->slug)];
+
+        return [
+            $schema->product($this->resource),
+            $schema->breadcrumb($crumbs),
         ];
     }
 }
