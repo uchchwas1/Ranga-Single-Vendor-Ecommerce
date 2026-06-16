@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\Admin\AdminAiController;
 use App\Http\Controllers\Api\V1\Admin\AdminBannerController;
 use App\Http\Controllers\Api\V1\Admin\AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\AdminBundleController;
@@ -34,8 +35,12 @@ use App\Http\Controllers\Api\V1\Commerce\CheckoutController;
 use App\Http\Controllers\Api\V1\Commerce\CompareController;
 use App\Http\Controllers\Api\V1\Commerce\OrderController;
 use App\Http\Controllers\Api\V1\Commerce\WishlistController;
+use App\Http\Controllers\Api\V1\Ai\ChatbotController;
+use App\Http\Controllers\Api\V1\Ai\RecommendationController;
 use App\Http\Controllers\Api\V1\Cms\BlogController;
 use App\Http\Controllers\Api\V1\Cms\ContentController;
+use App\Http\Controllers\Api\V1\Commerce\PushSubscriptionController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Marketing\AffiliateClickController;
 use App\Http\Controllers\Api\V1\Marketing\BundleController;
 use App\Http\Controllers\Api\V1\Marketing\FlashSaleController;
@@ -63,6 +68,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
         Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/products/{slug}/variants', [ProductController::class, 'variants'])->name('products.variants');
+        Route::get('/products/{slug}/recommendations', [RecommendationController::class, 'related'])->name('products.recommendations');
 
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/{slug}/products', [CategoryController::class, 'products'])->name('categories.products');
@@ -103,6 +109,12 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('/bundles', [BundleController::class, 'index'])->name('bundles.index');
         Route::get('/bundles/{slug}', [BundleController::class, 'show'])->name('bundles.show');
         Route::get('/aff/{code}', [AffiliateClickController::class, 'track'])->name('affiliate.track');
+    });
+
+    // AI: chatbot + recommendations (open to guests and apps).
+    Route::middleware('throttle:api')->group(function (): void {
+        Route::post('/chat', [ChatbotController::class, 'reply'])->name('chat');
+        Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations');
     });
 
     // Public CMS: pages, banners, menus, popups, blog.
@@ -171,6 +183,15 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         // Loyalty points
         Route::get('/profile/loyalty', [LoyaltyController::class, 'show'])->name('profile.loyalty');
 
+        // Notifications inbox
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read_all');
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+
+        // Web-push subscriptions
+        Route::post('/profile/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push.store');
+        Route::delete('/profile/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.destroy');
+
         // Order history, detail/timeline, cancel, return, tracking, invoice
         Route::get('/profile/orders', [OrderController::class, 'index'])->name('profile.orders.index');
         Route::get('/orders/{order_number}', [OrderController::class, 'show'])->name('orders.show');
@@ -238,5 +259,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
             Route::get('/customers/{user}', [AdminCustomerController::class, 'show'])->name('customers.show');
             Route::post('/customers/{user}/loyalty', [AdminCustomerController::class, 'adjustLoyalty'])->name('customers.loyalty');
+
+            // AI content generation
+            Route::post('/ai/product-description', [AdminAiController::class, 'productDescription'])->name('ai.description');
+            Route::post('/ai/seo-meta', [AdminAiController::class, 'seoMeta'])->name('ai.seo');
+            Route::post('/ai/tags', [AdminAiController::class, 'tags'])->name('ai.tags');
         });
 });

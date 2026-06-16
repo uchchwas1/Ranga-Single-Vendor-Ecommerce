@@ -188,6 +188,32 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The user's registered web-push subscriptions.
+     *
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
+     * Route SMS notifications to the user's phone number.
+     */
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone;
+    }
+
+    /**
+     * Route WhatsApp notifications to the user's phone number.
+     */
+    public function routeNotificationForWhatsapp(): ?string
+    {
+        return $this->phone;
+    }
+
+    /**
      * Scope the query to active (non-disabled) users.
      *
      * @param  Builder<User>  $query

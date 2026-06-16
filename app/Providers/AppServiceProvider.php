@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Notifications\Senders\LogPushSender;
+use App\Notifications\Senders\LogSmsSender;
+use App\Notifications\Senders\LogWhatsAppSender;
+use App\Notifications\Senders\PushSender;
+use App\Notifications\Senders\SmsSender;
+use App\Notifications\Senders\WhatsAppSender;
 use App\Services\Invoice\Contracts\InvoiceRenderer;
 use App\Services\Invoice\DompdfInvoiceRenderer;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -24,6 +30,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(InvoiceRenderer::class, DompdfInvoiceRenderer::class);
+
+        // Notification senders default to the log/database driver; bind a
+        // real gateway implementation here per deployment.
+        $this->app->bind(SmsSender::class, LogSmsSender::class);
+        $this->app->bind(WhatsAppSender::class, LogWhatsAppSender::class);
+        $this->app->bind(PushSender::class, LogPushSender::class);
     }
 
     /**
