@@ -1,0 +1,40 @@
+name: Deploy (staging)
+
+on:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_PORT || 22 }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.STAGING_PATH }}
+            php artisan down --retry=30 || true
+            git pull origin develop
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            npm install --no-audit --no-fund
+            npm run build
+            php artisan migrate --force
+            php artisan scout:import "App\\Models\\Product" || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan event:cache
+            php artisan view:cache
+            php artisan horizon:terminate || true
+            php artisan up
