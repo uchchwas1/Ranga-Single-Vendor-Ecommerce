@@ -69,7 +69,11 @@ class CartService
                 ->first();
 
             $desired = ($existing?->quantity ?? 0) + $quantity;
-            $this->assertStock($variant, $desired);
+
+            // Pre-order products may be ordered beyond on-hand stock.
+            if (! $product->is_preorder) {
+                $this->assertStock($variant, $desired);
+            }
 
             if ($existing !== null) {
                 $existing->update(['quantity' => $desired]);

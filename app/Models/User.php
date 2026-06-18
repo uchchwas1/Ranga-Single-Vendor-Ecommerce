@@ -198,6 +198,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The user's product subscriptions.
+     *
+     * @return HasMany<Subscription, $this>
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
      * Route SMS notifications to the user's phone number.
      */
     public function routeNotificationForSms(): ?string

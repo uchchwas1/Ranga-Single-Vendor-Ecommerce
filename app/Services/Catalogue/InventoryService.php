@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Catalogue;
 
+use App\Events\Catalogue\VariantRestocked;
 use App\Events\Inventory\InventoryLow;
 use App\Models\Inventory;
 use App\Models\InventoryLog;
@@ -45,7 +46,14 @@ class InventoryService
                 'created_by' => $userId,
             ]);
 
+            $variantStockBefore = $inventory->variant?->stock ?? 0;
             $this->syncVariantStock($inventory);
+            $variant = $inventory->variant;
+
+            // Restock: variant transitioned from out-of-stock to in-stock.
+            if ($variant !== null && $variantStockBefore <= 0 && $variant->stock > 0) {
+                VariantRestocked::dispatch($variant);
+            }
 
             if ($inventory->isLow()) {
                 InventoryLow::dispatch($inventory);

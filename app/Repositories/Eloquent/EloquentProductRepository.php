@@ -77,6 +77,7 @@ class EloquentProductRepository implements ProductRepositoryContract
                 'images',
                 'videos',
                 'tags',
+                'translations',
                 'variants' => fn ($q) => $q->where('is_active', true),
                 'variants.attributeValues.attribute',
                 'variants.image',

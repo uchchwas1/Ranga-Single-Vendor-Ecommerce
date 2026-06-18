@@ -22,6 +22,7 @@ return [
     'defaults' => [
         'locale' => env('RANGA_DEFAULT_LOCALE', 'bn'),
         'fallback_locale' => env('RANGA_FALLBACK_LOCALE', 'en'),
+        'supported' => ['bn', 'en'],
         'timezone' => env('RANGA_DEFAULT_TIMEZONE', 'Asia/Dhaka'),
         'currency' => env('RANGA_CURRENCY', 'BDT'),
         'currency_symbol' => env('RANGA_CURRENCY_SYMBOL', '৳'),

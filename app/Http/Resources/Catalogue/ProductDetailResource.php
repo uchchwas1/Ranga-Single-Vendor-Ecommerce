@@ -28,7 +28,12 @@ class ProductDetailResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'name_localized' => $this->translatedName(),
             'slug' => $this->slug,
+            'preorder' => $this->is_preorder ? [
+                'available_at' => $this->preorder_available_at?->toIso8601String(),
+                'payment' => $this->preorder_payment?->value,
+            ] : null,
             'sku' => $this->sku,
             'barcode' => $this->barcode,
             'short_description' => $this->short_description,

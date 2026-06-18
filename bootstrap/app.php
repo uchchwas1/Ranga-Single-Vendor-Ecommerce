@@ -26,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Security headers (CSP/HSTS/etc.) on every response.
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // Resolve request locale (Bangla/English) for API requests.
+        $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
     })->create();

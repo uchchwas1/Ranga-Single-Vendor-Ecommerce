@@ -12,6 +12,8 @@ use App\Notifications\Senders\SmsSender;
 use App\Notifications\Senders\WhatsAppSender;
 use App\Services\Invoice\Contracts\InvoiceRenderer;
 use App\Services\Invoice\DompdfInvoiceRenderer;
+use App\Services\Media\Contracts\QrGenerator;
+use App\Services\Media\EndroidQrGenerator;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(SmsSender::class, LogSmsSender::class);
         $this->app->bind(WhatsAppSender::class, LogWhatsAppSender::class);
         $this->app->bind(PushSender::class, LogPushSender::class);
+        $this->app->bind(QrGenerator::class, EndroidQrGenerator::class);
     }
 
     /**

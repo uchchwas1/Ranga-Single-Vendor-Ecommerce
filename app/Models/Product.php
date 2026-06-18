@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Observers\ProductObserver;
+use App\Support\Enums\PreorderPayment;
 use App\Support\Enums\ProductStatus;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -77,6 +78,9 @@ class Product extends Model
         'published_at',
         'is_featured',
         'is_digital',
+        'is_preorder',
+        'preorder_available_at',
+        'preorder_payment',
         'weight',
         'weight_unit',
         'dimensions',
@@ -99,9 +103,37 @@ class Product extends Model
             'published_at' => 'datetime',
             'is_featured' => 'boolean',
             'is_digital' => 'boolean',
+            'is_preorder' => 'boolean',
+            'preorder_available_at' => 'datetime',
+            'preorder_payment' => PreorderPayment::class,
             'weight' => 'decimal:3',
             'sort_order' => 'integer',
         ];
+    }
+
+    /**
+     * Locale-specific translations of the product's text fields.
+     *
+     * @return HasMany<ProductTranslation, $this>
+     */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(ProductTranslation::class);
+    }
+
+    /**
+     * The product name in the given (or current) locale, falling back to
+     * the base name when no translation exists.
+     */
+    public function translatedName(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        if (! $this->relationLoaded('translations')) {
+            return $this->name;
+        }
+
+        return $this->translations->firstWhere('locale', $locale)?->name ?? $this->name;
     }
 
     /**

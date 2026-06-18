@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\V1\Auth\TwoFactorController;
 use App\Http\Controllers\Api\V1\Catalogue\BrandController;
 use App\Http\Controllers\Api\V1\Catalogue\CategoryController;
 use App\Http\Controllers\Api\V1\Catalogue\ProductController;
+use App\Http\Controllers\Api\V1\Catalogue\ProductMediaController;
 use App\Http\Controllers\Api\V1\Catalogue\SearchController;
 use App\Http\Controllers\Api\V1\Commerce\CartController;
 use App\Http\Controllers\Api\V1\Commerce\CheckoutController;
@@ -39,7 +40,10 @@ use App\Http\Controllers\Api\V1\Ai\ChatbotController;
 use App\Http\Controllers\Api\V1\Ai\RecommendationController;
 use App\Http\Controllers\Api\V1\Cms\BlogController;
 use App\Http\Controllers\Api\V1\Cms\ContentController;
+use App\Http\Controllers\Api\V1\Commerce\BackInStockController;
 use App\Http\Controllers\Api\V1\Commerce\PushSubscriptionController;
+use App\Http\Controllers\Api\V1\Commerce\SubscriptionController;
+use App\Http\Controllers\Api\V1\LocaleController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Marketing\AffiliateClickController;
 use App\Http\Controllers\Api\V1\Marketing\BundleController;
@@ -69,6 +73,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
         Route::get('/products/{slug}/variants', [ProductController::class, 'variants'])->name('products.variants');
         Route::get('/products/{slug}/recommendations', [RecommendationController::class, 'related'])->name('products.recommendations');
+        Route::get('/products/{slug}/qr', [ProductMediaController::class, 'qr'])->name('products.qr');
+        Route::get('/products/{slug}/share', [ProductMediaController::class, 'share'])->name('products.share');
 
         Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
         Route::get('/categories/{slug}/products', [CategoryController::class, 'products'])->name('categories.products');
@@ -115,6 +121,12 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::middleware('throttle:api')->group(function (): void {
         Route::post('/chat', [ChatbotController::class, 'reply'])->name('chat');
         Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations');
+    });
+
+    // Bonus: locales + back-in-stock watch (open to guests).
+    Route::middleware('throttle:api')->group(function (): void {
+        Route::get('/i18n/locales', [LocaleController::class, 'index'])->name('locales');
+        Route::post('/back-in-stock', [BackInStockController::class, 'store'])->name('back-in-stock.store');
     });
 
     // Public CMS: pages, banners, menus, popups, blog.
@@ -191,6 +203,13 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         // Web-push subscriptions
         Route::post('/profile/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push.store');
         Route::delete('/profile/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push.destroy');
+
+        // Product subscriptions
+        Route::get('/profile/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+        Route::post('/subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+        Route::post('/subscriptions/{subscription}/pause', [SubscriptionController::class, 'pause'])->name('subscriptions.pause');
+        Route::post('/subscriptions/{subscription}/resume', [SubscriptionController::class, 'resume'])->name('subscriptions.resume');
+        Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])->name('subscriptions.cancel');
 
         // Order history, detail/timeline, cancel, return, tracking, invoice
         Route::get('/profile/orders', [OrderController::class, 'index'])->name('profile.orders.index');
